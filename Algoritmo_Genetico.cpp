@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
 #include <cmath>
 #include <vector>
 #include <bitset>
@@ -190,10 +192,33 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 ////////////////////////FUNCIONES COMPLEMENTARIAS////////////////////////////////////////
 
 
+//Población aleatoria
+void PoblacionInicial(int CantIn, vector<bitset<BitsX>>& Px, vector<bitset<BitsY>>& Py) {
+
+    srand(time(0)); 
+
+    for (int i = 0; i < CantIn; i++) {
+        Px.push_back(bitset<BitsX>(rand() % (int)pow(2, BitsX)));
+        Py.push_back(bitset<BitsY>(rand() % (int)pow(2, BitsY)));
+    }
+}
 
 
 int main()
 {
+    int CantIn{ 0 };
+    int CantGen{ 0 };
+    bool MaxOrMin{ false };
+    vector<bitset<BitsX>> Px;
+    vector<bitset<BitsY>> Py;
+    cout << "Ingrese la cantidad de generaciones que desea (Minimo 1): ";
+    cin >> CantGen;
+    cout << "\n \n Ahora ingrese la cantidad de individuos por cada generacion (Tiene que ser par) : ";
+    cin >> CantIn;
+    cout << "\n \n Maximizar(1) o Minimizar(0) ? : ";
+    cin >> MaxOrMin;
 
-    std::cout << "Hello World!\n";
+    PoblacionInicial(CantIn, Px, Py); 
+
+
 }
