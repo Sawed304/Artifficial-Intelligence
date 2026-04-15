@@ -20,13 +20,13 @@ using namespace std;
 
 //f(x,y)
 double f(int x, int y) {
-    double result = pow(2, x) - 2*x*y + pow(2,y); //ecuacion
+    double result = pow(2, x) - 2 * x * y + pow(2, y); //ecuacion
     return result;
 }
 
 //Funcion escoger Maximo o el Minimo
 double EscogerMaxOMin(vector<double> val, bool i) {
-    double result{val[0]};
+    double result{ val[0] };
     for (auto j : val) {
         if (i) {
             if (j > result) result = j;
@@ -36,28 +36,31 @@ double EscogerMaxOMin(vector<double> val, bool i) {
     return result;
 }
 
-//Funcion escoger la siguiente población
-pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, int CantIn, bool MaxOrMin, vector<int> Va){
+//<Funcion para escoger la siguiente población>
+/////////////////////////////////////////////
+///////SELECCION POR RANKING////////////////
+///////////////////////////////////////////
+
+pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, int CantIn, bool MaxOrMin, vector<int> Va) {
     pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > result;
+
+    //Si es MINIMIZAR
+    if (!MaxOrMin) {
+        for (auto& i : Va) i *= -1; //Cada elemento se multiplica por -1
+        MaxOrMin = !MaxOrMin; //MaxOrMin ahora es MAXIMIZAR 
+    }
     for (int i = 0; i < CantIn; i++) {
         int IndexMax0Min{ 0 };
-        int Max0Min{ Va[0]};
+        int Max0Min{ Va[0] };
         for (int j = 0; j < CantIn; j++) {
-            if (MaxOrMin) {
-                if (Va[j] > Max0Min) { 
-                    Max0Min = Va[j];
-                    IndexMax0Min = j;
-                }
-            }
-            else if (Va[j] < Max0Min) {
+            if (Va[j] > Max0Min) {
                 Max0Min = Va[j];
                 IndexMax0Min = j;
             }
         }
         result.first.push_back(px[IndexMax0Min]);
         result.second.push_back(py[IndexMax0Min]);
-        if (MaxOrMin) Va[IndexMax0Min]--;
-        else Va[IndexMax0Min]++;
+        Va[IndexMax0Min]--;
     }
     return result;
 }
@@ -83,8 +86,8 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
     vector< bitset<BitsX> > Px = px; // Px: vector de valores en bits de X
     vector< bitset<BitsY> > Py = py; // Px: vector de valores en bits de Y
 
-    //Función cruzamiento
-    if(GenId != 0){
+    //FUNCION CRUZAMIENTO
+    if (GenId != 0) {
         //Se cortara siempre 2 de izquierda a derecha (00|000)
         for (int n = 0; n < CantIn / 2; n++) {
             int cont{ 0 };
@@ -141,9 +144,9 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
     vector<double> Ve; // Ve: vector de valores de Valor Esperado
     vector<int> Va; // Va: vector de valores de Valor Actual
 
-    double sumatoria{0};
-    double media{0};
-    double Max_Min{0};
+    double sumatoria{ 0 };
+    double media{ 0 };
+    double Max_Min{ 0 };
 
     //Columna Funcion
     for (int i = 0; i < CantIn; i++) {
@@ -163,7 +166,7 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 
     //Columna Funcion / Sumatoria
     for (auto i : fucn) {
-        fucn_Sum.push_back(i/sumatoria);
+        fucn_Sum.push_back(i / sumatoria);
     }
 
     //Columna valor esperado
@@ -173,7 +176,7 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 
     //Columna valor actual
     for (auto i : Ve) {
-        Va.push_back( round(i) ); // "round" redondea
+        Va.push_back(round(i)); // "round" redondea
     }
 
     pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> NewPoblacion; //Siguiente población en "X" y "Y"
@@ -197,7 +200,7 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 //Población aleatoria
 void PoblacionInicial(int CantIn, vector<bitset<BitsX>>& Px, vector<bitset<BitsY>>& Py) {
 
-    srand(time(0)); 
+    srand(time(0));
 
     for (int i = 0; i < CantIn; i++) {
         Px.push_back(bitset<BitsX>(rand() % (int)pow(2, BitsX)));
@@ -406,14 +409,12 @@ void keyboard_cb(unsigned char key, int, int) {
     if (key == 27) exit(0); // ESC para salir
 }
 
-// ← ESTA ES LA UNICA FUNCION QUE LLAMAS EN EL MAIN
-void Graficar(vector<double> medias, vector<double> mejores, int cantGen) {
+void Graficar(int argc, char** argv, vector<double> medias, vector<double> mejores, int cantGen) {
     g_medias = medias;
     g_mejores = mejores;
     g_cantGen = cantGen;
 
-    int argc = 0;
-    glutInit(&argc, nullptr);
+    glutInit(&argc, argv); 
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
     glutInitWindowSize(g_winW, g_winH);
     glutInitWindowPosition(100, 100);
@@ -425,10 +426,7 @@ void Graficar(vector<double> medias, vector<double> mejores, int cantGen) {
     glutMainLoop();
 }
 
-
-
-
-int main()
+int main(int argc, char** argv)
 {
     /*
     int CantIn{ 0 };
@@ -443,14 +441,14 @@ int main()
     cout << "\n \n Maximizar(1) o Minimizar(0) ? : ";
     cin >> MaxOrMin;
 
-    PoblacionInicial(CantIn, Px, Py); 
+    PoblacionInicial(CantIn, Px, Py);
     */
 
     //Codigo de prueba para la visualización
-    
+
     vector<double> vectorMedias{ 100.0, 150.5, 210.2, 320.8, 410.0, 525.6, 630.3, 745.9, 880.4, 1000.0 };
     vector<double> vectorMejores{ 105.7, 198.3, 287.9, 376.4, 462.8, 589.1, 672.6, 798.2, 915.5, 987.3 };
     int CantGen = 10;
-    Graficar(vectorMedias, vectorMejores, CantGen);
+    Graficar(argc, argv, vectorMedias, vectorMejores, CantGen);
 
 }
