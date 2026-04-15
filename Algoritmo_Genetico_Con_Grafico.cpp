@@ -26,7 +26,8 @@ bool SumList{ false };
 //f(x,y)
 double f(int x, int y) {
     //double result = pow(2, x) - 2 * x * y + pow(2, y); // ecuacion x² - 2xy + y² 
-    double result = 2 * x + y;
+    //double result = 2 * x + y;
+    double result = (2,(x - y));
     return result;
 }
 
@@ -459,12 +460,12 @@ int main(int argc, char** argv)
 
     PoblacionInicial(CantIn, Px, Py);
 
-    int CantGen = 3;
+    int CantGen = 10;
 
     vector<double> vectorMedias;
     vector<double> vectorMejores;
     
-    /*
+    
     cout <<endl << "Poblacion X: " << endl;
     for (auto i : Px) {
         cout << i<<endl;
@@ -474,7 +475,7 @@ int main(int argc, char** argv)
     for (auto i : Py) {
         cout << i << endl;
     }
-    */
+    
 
     
     for (int i{ 0 }; i < CantGen; i++) {
@@ -482,7 +483,7 @@ int main(int argc, char** argv)
 
         vectorMedias.push_back(resultado.first.first);
         vectorMejores.push_back(resultado.first.second);
-        Px = resultado.second.first;
+        Px = resultado.second.first; 
         Py = resultado.second.second;
 
         cout << "GENERACION " << i << endl;
