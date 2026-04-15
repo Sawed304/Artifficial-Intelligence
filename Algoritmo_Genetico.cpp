@@ -80,7 +80,8 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 
     //Función cruzamiento
     if(GenId != 0){
-    
+        //Se cortara siempre 2 de izquierda a derecha (00|000)
+
     }
 
     //Transformacion de bits a int
