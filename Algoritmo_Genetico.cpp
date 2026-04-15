@@ -70,7 +70,7 @@ py : Vector de población en Y en bits
 MaxOrMin : Bool que decide si es Maximizar(True) o Minimizar(False)
 
 RETURN:
-El primer pair<double,double> contendra la MEDIA y el MEJOR DATO, respectivamente, de esa generación.
+El primer pair<double,double> contiene la MEDIA y el MEJOR DATO, respectivamente, de esa generación.
 El segundo pair<... , ...> contrendra los individuos escogidos para la siguiente generación.
 */
 pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> > Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, bool MaxOrMin) {
