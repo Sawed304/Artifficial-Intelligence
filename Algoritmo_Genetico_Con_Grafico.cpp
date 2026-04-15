@@ -25,7 +25,8 @@ bool SumList{ false };
 
 //f(x,y)
 double f(int x, int y) {
-    double result = pow(2, x) - 2 * x * y + pow(2, y); //ecuacion
+    //double result = pow(2, x) - 2 * x * y + pow(2, y); // ecuacion x² - 2xy + y² 
+    double result = 2 * x + y;
     return result;
 }
 
@@ -458,20 +459,40 @@ int main(int argc, char** argv)
 
     PoblacionInicial(CantIn, Px, Py);
 
-    int CantGen = 10;
-    
+    int CantGen = 3;
+
     vector<double> vectorMedias;
     vector<double> vectorMejores;
+    
+    /*
+    cout <<endl << "Poblacion X: " << endl;
+    for (auto i : Px) {
+        cout << i<<endl;
+    }
 
-    for (int i{ 0 }; i < 10; i++) {
+    cout << "Poblacion Y: " << endl;
+    for (auto i : Py) {
+        cout << i << endl;
+    }
+    */
+
+    
+    for (int i{ 0 }; i < CantGen; i++) {
         auto resultado = Algoritmo_Genetico(CantIn, i, Px, Py, MaxOrMin);
 
         vectorMedias.push_back(resultado.first.first);
         vectorMejores.push_back(resultado.first.second);
         Px = resultado.second.first;
         Py = resultado.second.second;
+
+        cout << "GENERACION " << i << endl;
+        cout << "Media: " << vectorMedias[i] << endl;
+        cout << "Mejor dato: " << vectorMejores[i] << endl;
+        cout << endl << "=============================" << endl;
+
+
     }
 
     Graficar(argc, argv, vectorMedias, vectorMejores, CantGen);
-
+    
 }
