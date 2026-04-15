@@ -34,7 +34,8 @@ double EscogerMaxOMin(vector<double> val, bool i) {
     return result;
 }
 
-//Funcion escoger la siguiente población
+//<Funcion escoger la siguiente población>
+//SELECCIÓN PARA LA REPRODUCCIÓN
 pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, int CantIn, bool MaxOrMin, vector<int> Va){
     pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > result;
     for (int i = 0; i < CantIn; i++) {
