@@ -11,7 +11,8 @@
 
 using namespace std;
 
-////////FUNCIONES///////
+//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////FUNCIONES ALGORITMO GENETICO/////////////////////////////////////
 
 //f(x,y)
 double f(int x, int y) {
@@ -81,7 +82,44 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
     //Función cruzamiento
     if(GenId != 0){
         //Se cortara siempre 2 de izquierda a derecha (00|000)
+        for (int n = 0; n < CantIn / 2; n++) {
+            int cont{ 0 };
+            bitset<BitsX> provX1;
+            bitset<BitsX> provX2;
+            bitset<BitsY> provY1;
+            bitset<BitsY> provY2;
 
+            for (int i = BitsX - 1; i >= 0; i--) {
+                if (cont > 2) {
+                    provX1.set(i, Px[(n * 2) + 1][i]);
+                    provX2.set(i, Px[(n * 2)][i]);
+                }
+                else {
+                    provX1.set(i, Px[(n * 2)][i]);
+                    provX2.set(i, Px[(n * 2) + 1][i]);
+                }
+                cont++;
+            }
+
+            cont = 0;
+
+            for (int i = BitsY - 1; i >= 0; i--) {
+                if (cont > 2) {
+                    provY1.set(i, Py[(n * 2) + 1][i]);
+                    provY2.set(i, Py[(n * 2)][i]);
+                }
+                else {
+                    provY1.set(i, Py[(n * 2)][i]);
+                    provY2.set(i, Py[(n * 2) + 1][i]);
+                }
+                cont++;
+            }
+
+            Px[(n * 2)] = provX1;
+            Px[(n * 2) + 1] = provX2;
+            Py[(n * 2)] = provY1;
+            Py[(n * 2) + 1] = provY2;
+        }
     }
 
     //Transformacion de bits a int
@@ -145,6 +183,12 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
     return MyPair;
 
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////FUNCIONES COMPLEMENTARIAS////////////////////////////////////////
+
 
 
 
