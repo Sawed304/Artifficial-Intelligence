@@ -6,6 +6,8 @@
 #include <bitset>
 #include <GL/glut.h>
 #include <string>
+#include <thread>
+#include <mutex>
 
 //Cantidad de Bits del rango en X
 #define BitsX 5 
@@ -14,6 +16,9 @@
 #define BitsY 6
 
 using namespace std;
+
+mutex m;
+bool SumList{ false };
 
 //////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////FUNCIONES ALGORITMO GENETICO/////////////////////////////////////
@@ -39,7 +44,6 @@ double EscogerMaxOMin(vector<double> val, bool i) {
 //<Funcion para escoger la siguiente población>
 /////////////////////////////////////////////
 ///////SELECCION PROPORCIONAL///////////////
-///////////////////////////////////////////
 
 pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, int CantIn, bool MaxOrMin, vector<int> Va) {
     pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > result;
@@ -65,6 +69,43 @@ pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<Bit
     return result;
 }
 
+//////////////////////////////////////////////////////////////////////////
+////////////////////FUNCION INDIVIDUO////////////////////////////////////
+// <Funcion llamada con threads>
+void callIndividuo(int CantIn, int idPi, vector< bitset<BitsX> > Px, vector< bitset<BitsY> > Py, vector<int>& Vx, vector<int>& Vy, vector<double>& fucn, double& sumatoria, vector<double>& fucn_Sum, vector<double>& Ve, vector<int>& Va) {
+
+    //Transformacion de bits a int
+    //Columna Vx and Vy
+    Vx[idPi] = (Px[idPi]).to_ulong(); // "to_ulong()" transforma directamente los bits a enteros
+    Vy[idPi] = (Py[idPi]).to_ulong(); // "to_ulong()" transforma directamente los bits a enteros
+    
+    //Columna funcion
+    fucn[idPi] = f(Vx[idPi], Vy[idPi]);
+    
+    //Mutex 
+    m.lock();
+    sumatoria += fucn[idPi];
+    m.unlock();
+    
+    //Caso donde la sumatoria este lista:
+    if (idPi == CantIn - 1) SumList = true; // Donde estamos en el ultimo thread
+
+    while (!SumList) {
+        //Esperada hasta que "Sumatoria" este listo para usar
+    }
+
+    //Columna Funcion / Sumatoria
+    fucn_Sum[idPi] = fucn[idPi] / sumatoria;
+    
+    //Columna valor esperado
+    Ve[idPi] = CantIn * fucn_Sum[idPi];
+
+    //Columna valor actual
+    Va[idPi] = round(Ve[idPi]); // "round" redondea
+  
+}
+
+
 
 /*Funcion Principal
 
@@ -79,9 +120,6 @@ El primer pair<double,double> contiene la MEDIA y el MEJOR DATO, respectivamente
 El segundo pair<... , ...> contrendra los individuos escogidos para la siguiente generación.
 */
 pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> > Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, bool MaxOrMin) {
-
-    vector<int> Vx; //Vx: vector de valores en INT de X
-    vector<int> Vy; //Vy: vector de valores en INT de Y
 
     vector< bitset<BitsX> > Px = px; // Px: vector de valores en bits de X
     vector< bitset<BitsY> > Py = py; // Px: vector de valores en bits de Y
@@ -129,59 +167,38 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
         }
     }
 
-    //Transformacion de bits a int
-    for (auto i : Px) {
-        Vx.push_back(i.to_ulong()); // "to_ulong()" transforma directamente los bits a enteros
-    }
-    for (auto i : Py) {
-        Vy.push_back(i.to_ulong());
-    }
-
-
-
-    vector<double> fucn; // fucn: vector de resultados de f(Xi,Yi)
-    vector<double> fucn_Sum; // fucn_Sum: vector de resultados de f(Xi,Yi) / Sumatoria
-    vector<double> Ve; // Ve: vector de valores de Valor Esperado
-    vector<int> Va; // Va: vector de valores de Valor Actual
+    vector<int> Vx(CantIn); //Vx: vector de valores en INT de X
+    vector<int> Vy(CantIn); //Vy: vector de valores en INT de Y
+    vector<double> fucn(CantIn); // fucn: vector de resultados de f(Xi,Yi)
+    vector<double> fucn_Sum(CantIn); // fucn_Sum: vector de resultados de f(Xi,Yi) / Sumatoria
+    vector<double> Ve(CantIn); // Ve: vector de valores de Valor Esperado
+    vector<int> Va(CantIn); // Va: vector de valores de Valor Actual
 
     double sumatoria{ 0 };
     double media{ 0 };
     double Max_Min{ 0 };
 
-    //Columna Funcion
-    for (int i = 0; i < CantIn; i++) {
-        double r = f(Vx[i], Vy[i]);
-        fucn.push_back(r);
-        sumatoria += r;
+    //////////////////////////////////////////////////////////////////////////
+    /////////////////////////THREADS/////////////////////////////////////////
+    vector<thread> myThreads(CantIn);
+
+    for (int i{ 0 }; i < CantIn;i++) {
+        myThreads[i] =  thread( callIndividuo,CantIn, i, Px, Py, ref(Vx), ref(Vy), ref(fucn), ref(sumatoria), ref(fucn_Sum), ref(Ve), ref(Va));
     }
 
-    if (sumatoria == 0) {
-        // manejar caso especial
-        cout << "Sumatoria es 0 en generacion " << GenId << endl;
-        exit;
+    // Esperar que todos terminen antes de continuar
+    for (int i{ 0 }; i < CantIn; i++) {
+        myThreads[i].join();
     }
+    
+    SumList = false; //Reseteo para la proxima generación
 
     Max_Min = EscogerMaxOMin(fucn, MaxOrMin);
     media = sumatoria / CantIn;
 
-    //Columna Funcion / Sumatoria
-    for (auto i : fucn) {
-        fucn_Sum.push_back(i / sumatoria);
-    }
+    pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> NewPoblacion; //Vector de la siguiente población en "X" y "Y"
 
-    //Columna valor esperado
-    for (auto i : fucn_Sum) {
-        Ve.push_back(i * CantIn);
-    }
-
-    //Columna valor actual
-    for (auto i : Ve) {
-        Va.push_back(round(i)); // "round" redondea
-    }
-
-    pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> NewPoblacion; //Siguiente población en "X" y "Y"
-
-    NewPoblacion = Sig(Px, Py, CantIn, MaxOrMin, Va);
+    NewPoblacion = Sig(Px, Py, CantIn, MaxOrMin, Va); // <Funcion para escoger la siguiente población>
 
     pair<double, double> MediaAndDatoRele(media, Max_Min);
 
@@ -197,7 +214,7 @@ pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> 
 ////////////////////////FUNCIONES COMPLEMENTARIAS////////////////////////////////////////
 
 
-//Población aleatoria
+//<Asignar una población inicial aleatoria>
 void PoblacionInicial(int CantIn, vector<bitset<BitsX>>& Px, vector<bitset<BitsY>>& Py) {
 
     srand(time(0));
@@ -426,29 +443,35 @@ void Graficar(int argc, char** argv, vector<double> medias, vector<double> mejor
     glutMainLoop();
 }
 
+////////////////////////////////////////////////////////////////////
+//////////////////////// MAIN /////////////////////////////////////
 int main(int argc, char** argv)
 {
-    /*
     int CantIn{ 0 };
-    int CantGen{ 0 };
     bool MaxOrMin{ false };
     vector<bitset<BitsX>> Px;
     vector<bitset<BitsY>> Py;
-    cout << "Ingrese la cantidad de generaciones que desea (Minimo 1): ";
-    cin >> CantGen;
     cout << "\n \n Ahora ingrese la cantidad de individuos por cada generacion (Tiene que ser par) : ";
     cin >> CantIn;
     cout << "\n \n Maximizar(1) o Minimizar(0) ? : ";
     cin >> MaxOrMin;
 
     PoblacionInicial(CantIn, Px, Py);
-    */
 
-    //Codigo de prueba para la visualización
-
-    vector<double> vectorMedias{ 100.0, 150.5, 210.2, 320.8, 410.0, 525.6, 630.3, 745.9, 880.4, 1000.0 };
-    vector<double> vectorMejores{ 105.7, 198.3, 287.9, 376.4, 462.8, 589.1, 672.6, 798.2, 915.5, 987.3 };
     int CantGen = 10;
+    
+    vector<double> vectorMedias;
+    vector<double> vectorMejores;
+
+    for (int i{ 0 }; i < 10; i++) {
+        auto resultado = Algoritmo_Genetico(CantIn, i, Px, Py, MaxOrMin);
+
+        vectorMedias.push_back(resultado.first.first);
+        vectorMejores.push_back(resultado.first.second);
+        Px = resultado.second.first;
+        Py = resultado.second.second;
+    }
+
     Graficar(argc, argv, vectorMedias, vectorMejores, CantGen);
 
 }
