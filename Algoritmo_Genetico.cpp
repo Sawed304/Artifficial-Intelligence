@@ -20,7 +20,7 @@ double f(int x, int y) {
 }
 
 //Funcion escoger Maximo o el Minimo
-double Max0Min(vector<double> val, bool i) {
+double EscogerMaxOMin(vector<double> val, bool i) {
     double result{val[0]};
     for (auto j : val) {
         if (i) {
@@ -32,8 +32,29 @@ double Max0Min(vector<double> val, bool i) {
 }
 
 //Funcion escoger la siguiente población
-pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig() {
-
+pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > Sig(vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, int CantIn, bool MaxOrMin, vector<int> Va){
+    pair < vector< bitset<BitsX> >, vector< bitset<BitsY> > > result;
+    for (int i = 0; i < CantIn; i++) {
+        int IndexMax0Min{ 0 };
+        int Max0Min{ Va[0]};
+        for (int j = 0; j < CantIn; j++) {
+            if (MaxOrMin) {
+                if (Va[j] > Max0Min) { 
+                    Max0Min = Va[j];
+                    IndexMax0Min = j;
+                }
+            }
+            else if (Va[j] < Max0Min) {
+                Max0Min = Va[j];
+                IndexMax0Min = j;
+            }
+        }
+        result.first.push_back(px[IndexMax0Min]);
+        result.second.push_back(py[IndexMax0Min]);
+        if (MaxOrMin) Va[IndexMax0Min]--;
+        else Va[IndexMax0Min]++;
+    }
+    return result;
 }
 
 
@@ -43,10 +64,13 @@ CantIn : Número de individuos
 GenId : Identificador de la generación
 px : Vector de población en X en bits
 py : Vector de población en Y en bits
-MaxOrMin : Bool que decide si es Maximizar(1) o Minimizar(0)
+MaxOrMin : Bool que decide si es Maximizar(True) o Minimizar(False)
 
+RETURN:
+El primer pair<double,double> contendra la MEDIA y el MEJOR DATO, respectivamente, de esa generación.
+El segundo pair<... , ...> contrendra los individuos escogidos para la siguiente generación.
 */
-void Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, bool MaxOrMin) {
+pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> > Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vector< bitset<BitsY> > py, bool MaxOrMin) {
 
     vector<int> Vx; //Vx: vector de valores en INT de X
     vector<int> Vy; //Vy: vector de valores en INT de Y
@@ -85,7 +109,13 @@ void Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vecto
         sumatoria += r;
     }
 
-    Max_Min = Max0Min(fucn, MaxOrMin);
+    if (sumatoria == 0) {
+        // manejar caso especial
+        cout << "Sumatoria es 0 en generacion " << GenId << endl;
+        exit;
+    }
+
+    Max_Min = EscogerMaxOMin(fucn, MaxOrMin);
     media = sumatoria / CantIn;
 
     //Columna Funcion / Sumatoria
@@ -103,9 +133,15 @@ void Algoritmo_Genetico(int CantIn, int GenId, vector< bitset<BitsX> > px, vecto
         Va.push_back( round(i) ); // "round" redondea
     }
 
-    pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> NPoblacion; //Siguiente población en "X" y "Y"
+    pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> NewPoblacion; //Siguiente población en "X" y "Y"
 
+    NewPoblacion = Sig(Px, Py, CantIn, MaxOrMin, Va);
 
+    pair<double, double> MediaAndDatoRele(media, Max_Min);
+
+    pair< pair<double, double>, pair<vector< bitset<BitsX> >, vector< bitset<BitsY> >> > MyPair(MediaAndDatoRele, NewPoblacion);
+
+    return MyPair;
 
 }
 
